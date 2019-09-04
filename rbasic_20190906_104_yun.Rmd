@@ -1,0 +1,340 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+#3.2 the very basics
+
+#3.2.1 objects
+<- to assign values to the variable
+
+<- and = can be used, but = not recommended
+
+i would like to see values by print() not just the variable
+```{r}
+a <- 1
+b<-1
+c<- -1
+a
+print(a)
+
+```
+#3.2.2 the workspace
+
+ls() to see variables
+
+```{r}
+
+ls()
+
+(-b + sqrt(b^2 - 4*a*c) ) / ( 2*a )
+(-b - sqrt(b^2 - 4*a*c) ) / ( 2*a )
+
+```
+#3.2.3 functions
+
+there is built in functions that we can use for ex. log function
+
+if i want to know about certain function, use help or simply ?function.
+
+log function follows order but if using the arguments order does not matter
+
+
+```{r}
+log(8)
+
+log(a)
+
+help('log')
+?log
+
+args(log)
+log(exp(2))
+log(8,base=2)
+log(x=8,base=2)
+log(8,2)
+log(base=2,x=8)
+2^3
+help("+")
+?"+"
+help(">")
+?">"
+
+```
+#3.2.4 other prebuilt objects
+
+Inf is for infinity
+
+```{r}
+data()
+co2
+pi
+
+Inf+1
+```
+#3.2.5 variable names
+variable start with a letter
+
+```{r}
+solution_1 <- (-b + sqrt(b^2 - 4*a*c)) / (2*a)
+solution_1
+solution_2 <- (-b - sqrt(b^2 - 4*a*c)) / (2*a)
+solution_2
+
+```
+#3.2.6 saving your workspace
+rm function is erasing function
+
+#3.2.7 motivation scripts
+
+By creating and saving a script with the code above, we would not need to retype everything each time and, instead, simply change the variable names
+
+```{r}
+a <- 3
+b <- 2
+c <- -1
+(-b + sqrt(b^2 - 4*a*c)) / (2*a)
+(-b - sqrt(b^2 - 4*a*c)) / (2*a)
+```
+#3.2.8 commenting your code
+symbol #, it is not evaluated.
+```{r}
+## Code to compute solution to quadratic equation of the form ax^2 + bx + c
+## define the variables
+a <- 3 
+b <- 2
+c <- -1
+
+## now compute the solution
+(-b + sqrt(b^2 - 4*a*c)) / (2*a)
+(-b - sqrt(b^2 - 4*a*c)) / (2*a)
+```
+#3.3 exercise
+1. what is the sum of the first 100 positive integers? the formula for the sum of integers 1 through n is (n*(n+1))/2 
+```{r}
+x=100
+(x*(x+1))/2
+```
+2. use the same formula to compute the sum of the integers from 1 through 1,000
+```{r}
+x<-1000
+(x*(x+1))/2
+```
+3. look at the result of typing the following code into R
+```{r}
+n <- 1000
+x <- seq(1, n)
+sum(x)
+```
+A. sum creates a list of numbers and seq adds them up.
+
+B. seq creates a list of numbers and sum adds them up.
+
+C. seq computes the difference between two arguments and sum computes the sum of 1 through 1000.
+
+D. sum always returns the same number.
+
+answer is b
+
+4. in math and programming we say that we evaluate a function when we replace the argument with a given number. So if we type sqrt(4), we evaluate the sqrt function. In R, you can evaluate a function inside another function. The evaluations happen from the inside out. Use one line of code to compute the log, in base 10, of the square root of 100.
+```{r}
+log(sqrt(100),base=10)
+
+```
+5.which of the following will always return the numeric value stored in x? you can try out examples and use the help system if you want.
+A. log(10^x)
+
+B. log10(x^10)
+
+C. log(exp(x))
+
+D. exp(log(x, base = 2))
+
+```{r}
+log(10^x)
+log10(x^10)
+log(exp(x))
+exp(log(x, base = 2))
+ 
+
+```
+the answer is c
+
+#3.4 data types
+r class is different from class in python
+
+```{r}
+a <- 2
+class(a)
+```
+
+#3.5 data frames
+ common way of storing a dataset in R is in a data frame.
+
+```{r}
+
+library(dslabs)
+data(murders)
+class(murders)
+
+
+
+```
+#3.5.1 examining an object
+str as structure not like string in python
+
+```{r}
+str(murders)
+?str
+head(murders)
+
+```
+#3.5.2 the accessor:$
+use $ for access data sets(particular)
+
+to know names use names().
+
+```{r}
+murders$population
+murders$state
+
+names(murders)
+
+```
+#3.5.3 vectors: numerics, characters, and logical
+
+numeric==real num
+integer==integer
+as.(function((x))==change x to function
+
+```{r}
+pop <- murders$population
+length(pop)
+class(pop)
+
+class(murders$state)
+
+z <- 3 == 2
+z
+class(z)
+
+?Comparison
+
+class(1)
+class(1L)
+
+```
+#3.5.4 factors
+FUN	
+a function whose first argument is a vector and returns a scalar, to be applied to each subset of X determined by the levels of x.
+reorder(x, X, FUN = mean, ...,
+        order = is.ordered(x))
+
+northeast=least , south=most
+```{r}
+class(murders$region)
+levels(murders$region)
+?reorder
+region <- murders$region
+value <- murders$total
+region <- reorder(region, value, FUN = sum)
+levels(region)
+```
+#3.5.5 lists
+```{r}
+record<-list("john Doe",1234,c(95,82,91,97,93),'A')
+names(record)<-list('name','student_id','grades','final_grade')
+
+record
+class(record)
+record$student_id
+record[['student_id']]
+
+```
+#3.5.6 matrices
+mat[2,] returns vector not matrix
+
+mat[a:b,c:d]==a~b and c:d sub matrix
+
+```{r}
+mat<- matrix(1:12,4,3)
+mat
+mat[2,3]
+mat[2,]
+mat[,3]
+mat[,2:3]
+mat[1:2,2:3]
+as.data.frame(mat)
+data("murders")
+murders[25,1]
+murders[2:3,]
+```
+#3.6 exercises
+1.Load the US murders dataset.
+
+```{r}
+library(dslabs)
+data(murders)
+```
+
+Use the function str to examine the structure of the murders object. We can see that this object is a data frame with 51 rows and five columns. Which of the following best describes the variables represented in this data frame?
+
+A. The 51 states.
+
+B. The murder rates for all 50 states and DC.
+
+C. The state name, the abbreviation of the state name, the state’s region, and the state’s population and total number of murders for 2010.
+
+D. str shows no relevant information.
+
+answer is c
+
+2.What are the column names used by the data frame for these five variables? 
+
+names(murders)
+
+3.Use the accessor $ to extract the state abbreviations and assign them to the object a. What is the class of this object?
+```{r}
+a<-murders$abb
+class(a)
+```
+numeric
+
+4.Now use the square brackets to extract the state abbreviations and assign them to the object b. Use the identical function to determine if a and b are the same.
+```{r}
+b<-murders[,2]
+class(b)
+
+identical(a,b)
+```
+a and b is different b is character
+
+5. We saw that the region column stores a factor. You can corroborate this by typing:
+
+```{r}
+class(murders$region)
+```
+
+With one line of code, use the function levels and length to determine the number of regions defined by this dataset.
+
+```{r}
+
+length(levels(murders$region))
+```
+4
+
+6.The function table takes a vector and returns the frequency of each element. You can quickly see how many states are in each region by applying this function. Use this function in one line of code to create a table of states per region.
+```{r}
+table(murders$region)
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

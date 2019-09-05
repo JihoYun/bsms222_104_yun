@@ -10,6 +10,7 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 #3.2 the very basics
 
 #3.2.1 objects
+
 <- to assign values to the variable
 
 <- and = can be used, but = not recommended
@@ -77,6 +78,7 @@ pi
 Inf+1
 ```
 #3.2.5 variable names
+
 variable start with a letter
 
 ```{r}
@@ -87,6 +89,7 @@ solution_2
 
 ```
 #3.2.6 saving your workspace
+
 rm function is erasing function
 
 #3.2.7 motivation scripts
@@ -101,6 +104,7 @@ c <- -1
 (-b - sqrt(b^2 - 4*a*c)) / (2*a)
 ```
 #3.2.8 commenting your code
+
 symbol #, it is not evaluated.
 ```{r}
 ## Code to compute solution to quadratic equation of the form ax^2 + bx + c
@@ -114,6 +118,7 @@ c <- -1
 (-b - sqrt(b^2 - 4*a*c)) / (2*a)
 ```
 #3.3 exercise
+
 1. what is the sum of the first 100 positive integers? the formula for the sum of integers 1 through n is (n*(n+1))/2 
 ```{r}
 x=100
@@ -165,6 +170,7 @@ exp(log(x, base = 2))
 the answer is c
 
 #3.4 data types
+
 r class is different from class in python
 
 ```{r}
@@ -173,6 +179,7 @@ class(a)
 ```
 
 #3.5 data frames
+
  common way of storing a dataset in R is in a data frame.
 
 ```{r}
@@ -185,6 +192,7 @@ class(murders)
 
 ```
 #3.5.1 examining an object
+
 str as structure not like string in python
 
 ```{r}
@@ -194,6 +202,7 @@ head(murders)
 
 ```
 #3.5.2 the accessor:$
+
 use $ for access data sets(particular)
 
 to know names use names().
@@ -229,6 +238,7 @@ class(1L)
 
 ```
 #3.5.4 factors
+
 FUN	
 a function whose first argument is a vector and returns a scalar, to be applied to each subset of X determined by the levels of x.
 reorder(x, X, FUN = mean, ...,
@@ -245,6 +255,7 @@ region <- reorder(region, value, FUN = sum)
 levels(region)
 ```
 #3.5.5 lists
+
 ```{r}
 record<-list("john Doe",1234,c(95,82,91,97,93),'A')
 names(record)<-list('name','student_id','grades','final_grade')
@@ -256,6 +267,7 @@ record[['student_id']]
 
 ```
 #3.5.6 matrices
+
 mat[2,] returns vector not matrix
 
 mat[a:b,c:d]==a~b and c:d sub matrix
@@ -274,6 +286,7 @@ murders[25,1]
 murders[2:3,]
 ```
 #3.6 exercises
+
 1.Load the US murders dataset.
 
 ```{r}

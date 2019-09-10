@@ -1,0 +1,143 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+# 4 programming basics
+
+note that there are several functions that are widely used to program in R but that we will not cover in this book. These include split, cut, do.call and Reduce. 
+
+# 4.1 conditional expressions
+
+if-else statement->difference from python is conditional statement should be in ()
+
+```{r}
+a<-0
+if(a!=0){
+  print(1/a)
+} else{
+  print('No reciprocal for 0')
+}
+
+
+library(dslabs)
+data(murders)
+murder_rate<-murders$total/murders$population*100000
+
+ind<-which.min(murder_rate)
+if(murder_rate[ind]<0.5){
+  print(murders$state[ind])
+}else{
+  print('No state has murder rate that low')
+}
+
+if(murder_rate[ind]<0.25){
+  print(murders$state[ind])
+}else{
+  print("No state has a murder rate that low.")
+}
+
+
+
+
+```
+if else takes three arguments: a logical and two possible answers.
+If the logical is TRUE, the value in the second argument is returned and if FALSE, the value in the third argument is returned.
+```{r}
+a<-0
+ifelse(a>0,1/a,NA)
+```
+ifelse can be used in vector by elementwise
+
+```{r}
+a <- c(0,1,2,-4,5)
+result <- ifelse(a > 0, 1/a, NA)
+result
+
+data(na_example)
+no_nas<-ifelse(is.na(na_example),0,na_example)
+sum(is.na(no_nas))
+
+```
+
+any->vector of logicals and returns TRUE if any of the entries is TRUE
+all->vector of logicals and returns TRUE if all of the entries are TRUE
+```{r}
+z<-c(TRUE,TRUE,FALSE)
+any(z)
+all(z)
+
+```
+# 4.2 defining functions
+
+making functions
+
+```{r}
+avg<-function(x){
+  s<-sum(x)
+  n<-length(x)
+  s/n
+}
+
+avg(c(1,2,3,4))
+x<-1:100
+identical(mean(x),avg(x))
+
+```
+as known, variables defined inside a function are not saved
+```{r}
+s<-3
+avg(1:10)
+s
+```
+general form of a function
+```{r}
+my_function <- function(VARIABLE_NAME){
+  perform operations on VARIABLE_NAME and calculate VALUE
+  VALUE
+}
+
+```
+function that computes either the arithmetic or geometric average depending on a user defined variable
+```{r}
+avg<-function(x,arithmetic=T){
+  n<-length(x)
+  ifelse(arithmetic,sum(x)/n,prod(x)^(1/n))
+}
+?prod
+avg(sqrt(1:20))
+sqrt(1:20)
+```
+# 4.3 Namespaces
+
+two packages use the same name for two different functions.
+We know this becasue when we first load dplyr we see the following message:
+```{r}
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+```
+R will follow a certain order when searching for a function in these namespaces
+```{r}
+install.packages('dplyr')
+search()
+stats::filter
+dplyr::filter
+```
+
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

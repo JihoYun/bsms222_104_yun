@@ -1,0 +1,195 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+# 4.4 For-loops
+Using what we learned about functions we can create one that computes the  Sn:
+
+
+```{r}
+compute_s_n<-function(n){
+  x<-1:n
+  return(sum(x))
+}
+```
+change the value and evaluate expression as you loop.
+```{r}
+for(i in 1:5){
+  print(i)
+}
+
+m=25
+s_n<-vector(length = m)
+for (n in 1:m) {
+  s_n[n]<-compute_s_n(n)
+  
+}
+s_n
+```
+```{r}
+n<-1:m
+plot(n,s_n)
+head(data.frame(s_n=s_n,formula=n*(n+1)/2))
+
+plot(n,s_n)
+lines(n,n*(n+1)/2)
+```
+# 4.5 vectorization and functionals
+
+in R rarely use for-loop, instead use vectorization.
+A vectorized function is a function that will apply the same operation on each of the vectors.
+```{r}
+x<-1:10
+sqrt(x)
+
+y<-1:10
+x*y
+```
+To make this calculation, there is no need for for-loops. However, not all functions work this way. For instance, the function we just wrote, compute_s_n, does not work element-wise since it is expecting a scalar. This piece of code does not run the function on each entry of n:
+```{r}
+n<-1:25
+compute_s_n(n)
+```
+Functionals are functions that help us apply the same function to each entry in a vector, matrix, data frame or list.
+
+for ex) sapply-> element-wise
+```{r}
+x<-1:10
+sapply(x,sqrt)
+
+```
+these result from sapply is concatenated.
+```{r}
+n<-1:25
+s_n<-sapply(n,compute_s_n)
+plot(n,s_n)
+```
+functionals are apply, lapply, tapply, mapply, vapply, and replicate. We moslty use sapply, apply, and replicate in this book, but we recommend familiarizing yourselves with the others as they can be very useful.
+
+# 4.6 exercises
+
+1.What will this conditional expression return?
+```{r}
+x <- c(1,2,-3,4)
+
+if(all(x>0)){
+  print("All Postives")
+} else{
+  print("Not all positives")
+}
+```
+not all positives
+2.Which of the following expressions is always FALSE when at least one entry of a logical vector x is TRUE?
+A. all(x)
+
+B. any(x)
+
+C. any(!x)
+
+D. all(!x)
+
+D
+
+3.The function nchar tells you how many characters long a character vector is.
+Write a line of code that assigns to the object new_names the state abbreviation when the state name is longer than 8 characters.
+```{r}
+
+nchar(murders$state)
+
+ifelse(nchar(murders$state)>8,new_names<-murders$abb,murders$state)
+```
+new_names=murders$abb라고 하면 에러그이유는...?
+
+4.Create a function sum_n that for any given value, say  n, computes the sum of the integers from 1 to n (inclusive). Use the function to determine the sum of integers from 1 to 5,000.
+```{r}
+sum_n<-function(n){
+  return(sum(1:n))
+}
+sum_n(5000)
+```
+12502500
+
+5.Create a function altman_plot that takes two arguments, x and y, and plots the difference against the sum.
+```{r}
+altman_plot<-function(x,y){
+  plot(x-y,x+y)
+}
+altman_plot(1:10,1:10)
+```
+6.After running the code below, what is the value of x?
+```{r}
+x <- 3
+my_func <- function(y){
+  x <- 5
+  y+5
+}
+x
+```
+3
+
+7.Write a function compute_s_n that for any given n computes the sum Sn=1^2+2^2......n^2. Report the value of the sum when  n=10.
+```{r}
+compute_s_n2<-function(n){
+  newvector<-1:n
+  newvector2<-newvector*newvector
+  return(sum(newvector2))
+}
+compute_s_n2(10)
+```
+385
+
+8. Define an empty numerical vector s_n of size 25 using s_n<-vector('numeric',25) and store in the results of s1,s2....s25 using a for-loop.
+```{r}
+s_n<-vector('numeric',25)
+s_n
+for(i in 1:25){
+  s_n[i]<-compute_s_n2(i)
+}
+s_n
+
+```
+9.Repeat exercise 8, but this time use sapply.
+```{r}
+s_n<-sapply(1:25,compute_s_n2)
+s_n
+```
+10.Repeat exercise 8, but this time use map_dbl.
+```{r}
+s_n <- map_dbl(1:25, compute_s_n)
+s_n
+```
+
+11. plot sn versus n. use points defined by n=1,2,........25
+
+```{r}
+compute_s_n3<-function(n){
+  newvector<-1:n
+  newvector2<-newvector*newvector
+  return((newvector2))
+}
+
+plot(1:25,compute_s_n3(25))
+
+
+
+```
+12.Confirm that the formula for this sum is sn=n(n+1)(2n+1)/6
+```{r}
+s_n<-function(n){
+  return(n*(n+1)*(2*n+1)/6)
+}
+s_n(10)==compute_s_n2(10)
+
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

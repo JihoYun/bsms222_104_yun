@@ -1,0 +1,289 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+
+# 5 The tidyverse
+
+learn to work directly with data frames
+```{r}
+install.packages('tidyverse')
+library(tidyverse)
+
+```
+# 5.1 Tidy data
+
+data table is in tidy format if each row represents one observation and columns represent the different variables available for each of these observations.
+```{r}
+head(murders)
+```
+To see how the same information can be provided in different formats, consider the following example:
+```{r}
+#>        country year fertility
+#> 1      Germany 1960      2.41
+#> 2  South Korea 1960      6.16
+#> 3      Germany 1961      2.44
+#> 4  South Korea 1961      5.99
+#> 5      Germany 1962      2.47
+#> 6  South Korea 1962      5.79
+#> 7      Germany 1963      2.49
+#> 8  South Korea 1963      5.57
+#> 9      Germany 1964      2.49
+#> 10 South Korea 1964      5.36
+#> 11     Germany 1965      2.48
+#> 12 South Korea 1965      5.16
+```
+but 
+```{r}
+#>       country 1960 1961 1962 1963 1964 1965
+#> 1     Germany 2.41 2.44 2.47 2.49 2.49 2.48
+#> 2 South Korea 6.16 5.99 5.79 5.57 5.36 5.16
+```
+are not tidy format because row contains several observations
+
+# 5.2 exercises
+
+1.Examine the built-in dataset co2. Which of the following is true:
+A. co2 is tidy data: it has one year for each row.
+
+B. co2 is not tidy: we need at least one column with a character vector.
+
+C. co2 is not tidy: it is a matrix instead of a data frame.
+
+D. co2 is not tidy: to be tidy we would have to wrangle it to have three columns (year, month and value), then each co2 observation would have a row.
+
+```{r}
+co2
+head(co2)
+```
+A
+
+2.Examine the built-in dataset ChickWeight. Which of the following is true:
+A.ChickWeight is not tidy: each chick has more than one row.
+
+B.ChickWeight is tidy: each observation (a weight) is represented by one row. The chick from which this measurement came from is one the variables.
+
+C.ChickWeight is not a tidy: we are missing the year column.
+
+D.ChickWeight is tidy: it is stored in a data frame.
+
+```{r}
+ChickWeight
+class(ChickWeight)
+```
+D
+
+3.Examine the built-in dataset BOD. Which of the following is true:
+A. BOD is not tidy: it only has six rows.
+
+B. BOD is not tidy: the first column is just an index.
+
+C. BOD is tidy: each row is an observation with two values (time and demand)
+
+D. BOD is tidy: all small datasets are tidy by definition.
+
+```{r}
+BOD
+```
+c
+
+4.Which of the following built-in datasets is tidy (you can pick more than one):
+A. BJsales
+
+B. EuStockMarkets
+
+C. DNase
+
+D. Formaldehyde
+
+E. Orange
+
+F. UCBAdmissions
+
+```{r}
+EuStockMarkets
+DNase
+Formaldehyde
+Orange
+UCBAdmissions
+```
+B,C,D,E
+
+# 5.3 manipulating data frames
+to change the data table by adding a new column, we use mutate.To filter the data table to a subset of rows, we use filter. Finally, to subset the data by selecting specific columns, we use select.
+
+# 5.3.1 adding a column with mutate
+
+```{r}
+murders<-mutate(murders,rate=total/population*100000)
+murders
+```
+Functions in this package, such as mutate, know to look for variables in the data frame provided in the first argument. In the call to mutate above, total will have the values in murders$total.
+
+```{r}
+head(murders)
+```
+Although we have overwritten the original murders object, this does not change the object that loaded with data(murders). If we load the murders data again, the original will overwrite our mutated version.
+
+# 5.3.2 subsetting with filter
+
+```{r}
+filter(murders,rate<=0.71)
+```
+# 5.3.3 selecting columns with select
+
+```{r}
+new_table<-select(murders,state,region,rate)
+filter(new_table,rate<=0.71)
+```
+# 5.4 exercises
+
+1.Load the dplyr package and the murders dataset.
+```{r}
+library(dplyr)
+library(dslabs)
+data(murders)
+```
+You can add columns using the dplyr function mutate. This function is aware of the column names and inside the function you can call them unquoted:
+```{r}
+murders <- mutate(murders, population_in_millions = population / 10^6)
+```
+We can write population rather than murders$population. The function mutate knows we are grabbing columns from murders.
+
+Use the function mutate to add a murders column named rate with the per 100,000 murder rate as in the example code above. Make sure you redefine murders as done in the example code above ( murders <- [your code]) so we can keep using this variable.
+
+```{r}
+murders<-mutate(murders,rate=total/population*100000)
+murders
+
+```
+2. If rank(x) gives you the ranks of x from lowest to highest, rank(-x) gives you the ranks from highest to lowest. Use the function mutate to add a column rank containing the rank, from highest to lowest murder rate. Make sure you redefine murders so we can keep using this variable.
+```{r}
+murders<-mutate(murders,realrank=rank(-rate))
+murders
+```
+3.With dplyr, we can use select to show only certain columns. For example, with this code we would only show the states and population sizes:
+```{r}
+select(murders,state,population) %>% head()
+
+```
+Use select to show the state names and abbreviations in murders. Do not redefine murders, just show the results.
+
+```{r}
+select(murders,state,abb)
+```
+4.The dplyr function filter is used to choose specific rows of the data frame to keep. Unlike select which is for columns, filter is for rows. For example, you can show just the New York row like this:
+```{r}
+filter(murders,state=='New York')
+```
+You can use other logical vectors to filter rows.
+
+Use filter to show the top 5 states with the highest murder rates. After we add murder rate and rank, do not change the murders dataset, just show the result. Remember that you can filter based on the rank column.
+
+```{r}
+orders<-order(murders$realrank)
+a<-murders$state[orders[1:5]]
+
+filter(murders,state %in% a)
+
+
+```
+5. We can remove rows using the != operator. For example, to remove Florida, we would do this:
+
+```{r}
+no_florida <- filter(murders, state != "Florida")
+```
+Create a new data frame called no_south that removes states from the South region. How many states are in this category? You can use the function nrow for this.
+
+```{r}
+no_south<-filter(murders,region!='South')
+no_south
+```
+6. We can also use %in% to filter with dplyr. You can therefore see the data from New York and Texas like this:
+```{r}
+filter(murders,state%in%c('New York','Texas'))
+```
+Create a new data frame called murders_nw with only the states from the Northeast and the West. How many states are in this category?
+
+```{r}
+filter(murders,region%in%c('Northeast','West'))
+```
+7.Suppose you want to live in the Northeast or West and want the murder rate to be less than 1. We want to see the data for the states satisfying these options. Note that you can use logical operators with filter. Here is an example in which we filter to keep only small states in the Northeast region.
+```{r}
+filter(murders,population<5000000&region=='Northeast')
+```
+Make sure murders has been defined with rate and rank and still has all states. Create a table called my_states that contains rows for states satisfying both the conditions: it is in the Northeast or West and the murder rate is less than 1. Use select to show only the state name, the rate and the rank.
+
+```{r}
+head(murders)
+```
+```{r}
+my_states<-filter(murders,region!='South'&region!='North Central'&rate<1)
+my_states
+select(my_states,state,rate,realrank)
+```
+# 5.5 The pipe:%>%
+
+ In dplyr we can write code that looks more like a description of what we want to do without intermediate objects:
+ 
+```{r}
+murders %>% select(state,region,rate)%>%filter(rate<=0.71)
+```
+ the pipe sends the result of the left side of the pipe to be the first argument of the function on the right side of the pipe
+```{r}
+16%>%sqrt()
+```
+```{r}
+16%>%sqrt()%>%log(base=2)
+```
+```{r}
+murders %>% select(state,region,rate)%>%filter(rate<=0.71)
+```
+ 
+# 5.6 Exercises
+
+1.The pipe %>% can be used to perform operations sequentially without having to define intermediate objects. Start by redefining murder to include rate and rank.
+
+```{r}
+murders <- mutate(murders, rate =  total / population * 100000, rank = rank(-rate))
+```
+In the solution to the previous exercise, we did the following:
+```{r}
+my_states <- filter(murders, region %in% c("Northeast", "West") & rate < 1)
+
+select(my_states, state, rate, rank)
+```
+The pipe %>% permits us to perform both operations sequentially without having to define an intermediate variable my_states. We therefore could have mutated and selected in the same line like this:
+```{r}
+mutate(murders, rate =  total / population * 100000, rank = rank(-rate)) %>%
+  select(state, rate, rank)
+```
+Notice that select no longer has a data frame as the first argument. The first argument is assumed to be the result of the operation conducted right before the %>%.
+
+Repeat the previous exercise, but now instead of creating a new object, show the result and only include the state, rate, and rank columns. Use a pipe %>% to do this in just one line.
+
+```{r}
+filter(murders,region%in%c('Northeast','West')&rate<1)%>%select(state,rate,realrank)
+```
+2.Reset murders to the original table by using data(murders). Use a pipe to create a new data frame called my_states that considers only states in the Northeast or West which have a murder rate lower than 1, and contains only the state, rate and rank columns. The pipe should also have four components separated by three %>%. The code should look something like this:
+
+```{r}
+data(murders)
+murders
+
+my_states<-murders%>%mutate(murder_rate=total/population*100000,realrank=rank(-murder_rate))%>%filter(region%in%c('Northeast','West')&murder_rate<1)%>%select(state,murder_rate,realrank)
+my_states
+```
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

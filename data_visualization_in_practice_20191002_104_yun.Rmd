@@ -1,0 +1,479 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+# 10 data visualization in practice
+
+# 10.1 case study:new insights on poverty
+
+```{r}
+library(tidyverse)
+library(dslabs)
+data("gapminder")
+gapminder%>%as_tibble()
+```
+
+# 10.1.1 hans rosling's quiz
+
+```{r}
+gapminder%>%
+  filter(year==2015&country%in%c('Sri Lanka','Turkey'))%>%
+  select(country,infant_mortality)
+```
+
+# 10.2 scatterplots
+
+```{r}
+filter(gapminder,year==1962)%>%
+  ggplot(aes(fertility,life_expectancy))+
+  geom_point()
+```
+
+```{r}
+gapminder%>%filter(year==1962)%>%
+  ggplot(aes(fertility,life_expectancy,color=continent))+
+  geom_point()
+```
+# 10.3 faceting
+
+```{r}
+filter(gapminder,year%in%c(1962,2012))%>%
+  ggplot(aes(fertility,life_expectancy,col=continent))+
+  geom_point()+
+  facet_grid(continent~year)
+```
+```{r}
+gapminder%>%filter(year%in%c(1962,2012))%>%
+  ggplot(aes(fertility,life_expectancy,color=continent))+
+  geom_point()+
+  facet_grid(.~year)
+```
+# 10.3.1 facet_wrap
+
+```{r}
+years<-c(1962,1980,1990,2000,2012)
+continents<-c('Europe','Asia')
+gapminder%>%filter(year%in%years&continent%in%continents)%>%
+  ggplot(aes(fertility,life_expectancy,color=continent))+
+  geom_point()+
+  facet_wrap(~year)
+```
+# 10.3.2 fixed scales for better comparisons
+The default choice of the range of the axes is important. When not using facet, this range is determined by the data shown in the plot. When using facet, this range is determined by the data shown in all plots and therefore kept fixed across plots. This makes comparisons across plots much easier. For example, in the above plot, we can see that life expectancy has increased and the fertility has decreased across most countries. We see this because the cloud of points moves. 
+
+# 10.4 time series plots
+
+```{r}
+gapminder%>%
+  filter(country=='United States')%>%
+  ggplot(aes(year,fertility))+
+  geom_point()
+```
+When the points are regularly and densely spaced, as they are here, we create curves by joining the points with lines, to convey that these data are from a single series, here a country. To do this, we use the geom_line function instead of geom_point.
+```{r}
+gapminder%>%
+  filter(country=='United States')%>%
+  ggplot(aes(year,fertility))+
+  geom_line()
+```
+```{r}
+countries<-c('South Korea','Germany')
+
+gapminder%>%filter(country%in%countries)%>%
+  ggplot(aes(year,fertility))+
+  geom_line()
+```
+Unfortunately, this is not the plot that we want. Rather than a line for each country, the points for both countries are joined. This is actually expected since we have not told ggplot anything about wanting two separate lines. To let ggplot know that there are two curves that need to be made separately, we assign each point to a group, one for each country:
+
+```{r}
+countries<-c('South Korea','Germany')
+
+gapminder%>%filter(country%in%countries&!is.na(fertility))%>%
+  ggplot(aes(year,fertility,group=country))+
+  geom_line()
+```
+```{r}
+gapminder%>%filter(country%in%countries&!is.na(fertility))%>%ggplot(aes(year,fertility,color=country))+geom_line()
+```
+# 10.4.1 labels instead of legends
+
+```{r}
+labels<-data.frame(country=countries,x=c(1975,1965),y=c(60,72))
+labels
+gapminder%>%
+  filter(country%in%countries)%>%
+  ggplot(aes(year,life_expectancy,col=country))+
+  geom_line()+
+  geom_text(data=labels,aes(x,y,label=country),size=5)+
+  theme(legend.position = 'none')
+```
+# 10.5 data transformations
+
+```{r}
+gapminder<-gapminder%>%mutate(dollars_per_day=gdp/population/365)
+```
+# 10.5.1 log transformation
+
+```{r}
+past_year<-1970
+gapminder%>%
+  filter(year==past_year&!is.na(gdp))%>%
+  ggplot(aes(dollars_per_day))+
+  geom_histogram(binwidth = 1,col='black')
+```
+```{r}
+gapminder%>%
+  filter(year==past_year&!is.na(gdp))%>%
+  ggplot(aes(log2(dollars_per_day)))+
+  geom_histogram(binwidth = 1,col='black')
+```
+# 10.5.2 which base?
+
+```{r}
+gapminder%>%filter(year==past_year)%>%
+  summarize(min=min(population),max=max(population))
+```
+```{r}
+gapminder%>%
+  filter(year==past_year)%>%
+  ggplot(aes(log10(population)))+
+  geom_histogram(binwidth = 0.5,color='black')
+```
+# 10.5.3 transform the values or the scale?
+
+```{r}
+gapminder%>%
+  filter(year==past_year&!is.na(gdp))%>%
+  ggplot(aes(dollars_per_day))+
+  geom_histogram(binwidth = 1,col='black')+
+  scale_x_continuous(trans='log2')
+```
+
+# 10.6 visualizing multimodal distributions
+
+In the histogram above we see two bumps: one at about 4 and another at about 32. In statistics these bumps are sometimes referred to as modes. 
+
+When a distribution, like the one above, doesn’t monotonically decrease from the mode, we call the locations where it goes up and down again local modes and say that the distribution has multiple modes.
+
+# 10.7 comparing multiple distributions with boxplots and ridge plots
+
+```{r}
+p<-gapminder%>%
+  filter(year==past_year&!is.na(gdp))%>%
+  ggplot(aes(dollars_per_day,region))+
+  geom_point()
+p
+```
+```{r}
+p<-gapminder%>%
+  filter(year==past_year&!is.na(gdp))%>%
+  ggplot(aes(region,dollars_per_day))
+  
+p+geom_point()
+```
+```{r}
+p+geom_point()+
+  theme(axis.text.x = element_text(angle=90,hjust= 1))
+```
+hjust=0 왼쪽정렬 hjust=1 오른쪽 정렬 
+
+```{r}
+p<-gapminder%>%
+  filter(year==past_year&!is.na(gdp))%>%
+           mutate(region=reorder(region,dollars_per_day,FUN = median))%>%
+  ggplot(aes(region,dollars_per_day))+
+  geom_point()+
+  theme(axis.text.x = element_text(angle = 90,hjust = 1))
+p
+```
+
+```{r}
+p+scale_y_continuous(trans = 'log2')
+```
+# 10.7.1 boxplots
+
+```{r}
+gapminder<-gapminder%>%
+  mutate(group=case_when(
+    region%in%  c("Western Europe", "Northern Europe","Southern Europe", 
+                    "Northern America", "Australia and New Zealand") ~ "West",
+    region %in% c("Eastern Asia", "South-Eastern Asia") ~ "East Asia",
+    region %in% c("Caribbean", "Central America", "South America") ~ "Latin America",
+     continent == "Africa" & region != "Northern Africa" ~ "Sub-Saharan Africa",
+    TRUE ~ "Others"))
+  
+```
+
+```{r}
+gapminder<-gapminder%>%
+  mutate(group=factor(group,levels=c("Others", "Latin America", "East Asia", "Sub-Saharan Africa", "West")))
+```
+```{r}
+p<-gapminder%>%
+  filter(year==past_year&!is.na(gdp))%>%
+  ggplot(aes(group,dollars_per_day))+
+  geom_boxplot()+
+  theme(axis.title.x = element_text(angle=90,hjust=1))+
+  scale_y_continuous(trans = 'log2')+xlab("")
+p
+```
+```{r}
+p+geom_point(alpha=0.5)
+```
+
+# 10.7.2 ridge plots
+```{r}
+install.packages('ggridges')
+```
+
+```{r}
+library(ggridges)
+p<-gapminder%>%
+  filter(year==past_year&!is.na(dollars_per_day))%>%
+  ggplot(aes(dollars_per_day,group))+
+  scale_x_continuous(trans = 'log2')
+p+geom_density_ridges(aes(fill=group))
+```
+
+
+```{r}
+p+geom_density_ridges(jittered_points=TRUE)
+```
+
+```{r}
+p+geom_density_ridges(jittered_points=TRUE,
+                      position = position_points_jitter(width = 0.5,height=0),
+                      point_shape='|',point_size=3,point_alpha=1,alpha=0.7)
+```
+
+# 10.7.3 example:1970 versus 2010 income distributions
+
+
+```{r}
+past_year<-1970
+present_year<-2010
+gapminder%>%
+  filter(year%in%c(past_year,present_year)&!is.na(gdp))%>%
+  mutate(west=ifelse(group=='West','West','Developing'))%>%
+  ggplot(aes(dollars_per_day))+
+  geom_histogram(binwidth = 1,color='black')+
+  scale_x_continuous(trans = 'log2')+
+  facet_grid(year~west)
+```
+```{r}
+country_list_1<-gapminder%>%
+  filter(year==past_year&!is.na(dollars_per_day))%>%
+  pull(country)
+
+country_list_2<-gapminder%>%
+  filter(year==present_year&!is.na(dollars_per_day))%>%
+  pull(country)
+
+country_list<-intersect(country_list_1,country_list_2)
+```
+```{r}
+past_year<-1970
+present_year<-2010
+gapminder%>%
+  filter(year%in%c(past_year,present_year)&country%in%country_list&!is.na(gdp))%>%
+  mutate(west=ifelse(group=='West','West','Developing'))%>%
+  ggplot(aes(dollars_per_day))+
+  geom_histogram(binwidth = 1,color='black')+
+  scale_x_continuous(trans = 'log2')+
+  facet_grid(year~west)
+```
+
+```{r}
+gapminder%>%
+  filter(year%in%c(past_year,present_year)&country%in%country_list)%>%
+  ggplot(aes(group,dollars_per_day))+
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle=90,hjust=1))+
+  scale_y_continuous(trans='log2')+
+  xlab('')+
+  facet_grid(.~year)
+```
+```{r}
+gapminder%>%
+  filter(year%in%c(past_year,present_year)&country%in%country_list)%>%
+  mutate(year=factor(year))%>%
+  ggplot(aes(group,dollars_per_day,fill=year))+
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle=90,hjust=1))+
+  scale_y_continuous(trans='log2')+
+  xlab('')
+```
+!!!factor를 사용해서 묶을수 있다. 하지만 아직은 익숙치 않다.
+
+```{r}
+gapminder%>%
+  filter(year%in%c(past_year,present_year)&country%in%country_list)%>%
+  ggplot(aes(dollars_per_day))+
+  geom_density(fill='grey')+
+  scale_x_continuous(trans='log2')+
+  facet_grid(.~year)
+```
+
+```{r}
+gapminder%>%
+  filter(year%in%c(present_year,past_year)&country%in%country_list)%>%
+  mutate(group=ifelse(group=='West','West','Developing'))%>%
+  ggplot(aes(dollars_per_day,fill=group))+
+  geom_density(alpha=0.2)+
+  scale_x_continuous(trans='log2')+
+  facet_grid(year~.)
+```
+
+# 10.7.4 accessing computed variables
+
+```{r}
+aes(x=dollars_per_day,y=..count..)
+```
+```{r}
+p<-gapminder%>%
+  filter(year%in%c(past_year,present_year)&country%in%country_list)%>%
+  mutate(group=ifelse(group=='West','West','Developing'))%>%
+  ggplot(aes(dollars_per_day,y=..count..,fill=group))+
+  scale_x_continuous(trans = 'log2',limit = c(0.125, 300))
+
+p+geom_density(alpha=0.2)+
+  facet_grid(year~.)
+```
+```{r}
+p+geom_density(alpha=0.2,bw=0.75)+facet_grid(year~.)
+```
+```{r}
+gapminder %>% 
+  filter(year %in% c(past_year, present_year) & !is.na(dollars_per_day)) %>%
+  ggplot(aes(dollars_per_day, group)) + 
+  scale_x_continuous(trans = "log2") + 
+  geom_density_ridges() +
+  facet_grid(. ~ year)
+```
+```{r}
+gapminder%>%
+  filter(year%in%c(past_year,present_year)&country%in%country_list)%>%
+  group_by(year)%>%
+  mutate(weight=population/sum(population)*2)%>%
+  ungroup()%>%
+  ggplot(aes(dollars_per_day,fill=group))+
+  scale_x_continuous(trans = "log2", limit = c(0.125, 300)) + 
+  geom_density(alpha=0.2,bw=0.75,position = 'stack')+facet_grid(year~.)
+```
+group_by(year)%>%
+  mutate(weight=population/sum(population)*2)%>%
+  ungroup()%>%
+이 세 문장의 필요성...?=>x
+
+# 10.7.5 weighted densities
+
+As a final point, we note that these distributions weigh every country the same. So if most of the population is improving, but living in a very large country, such as China, we might not appreciate this. We can actually weight the smooth densities using the weight mapping argument.
+
+# 10.8 The ecological fallacy and importance of showing the data
+
+```{r}
+gapminder<-gapminder%>%
+  mutate(group=case_when(
+    region%in%c("Western Europe", "Northern Europe","Southern Europe", 
+                    "Northern America", "Australia and New Zealand") ~ "West",
+    region %in% "Northern Africa" ~ "Northern Africa",
+    region %in% c("Eastern Asia", "South-Eastern Asia") ~ "East Asia",
+    region == "Southern Asia"~ "Southern Asia",
+    region %in% c("Central America", "South America", "Caribbean") ~ "Latin America",
+    continent == "Africa" & region != "Northern Africa" ~ "Sub-Saharan Africa",
+    region %in% c("Melanesia", "Micronesia", "Polynesia") ~ "Pacific Islands"))
+  
+```
+
+
+```{r}
+surv_income<-gapminder%>%
+  filter(year%in%present_year&!is.na(gdp)&!is.na(infant_mortality)&!is.na(group))%>%
+  group_by(group)%>%
+  summarize(income=sum(gdp)/sum(population)/365,infant_survival_rate=1-sum(infant_mortality/1000*population)/sum(population))
+
+surv_income%>%arrange(income)
+```
+In this plot we introduce the use of the limit argument, which lets us change the range of the axes. We are making the range larger than the data requires because we will later compare this plot to one with more variability and we want the ranges to be the same. We also introduce the breaks argument, which lets us set the location of the axes labels. Finally, we introduce a new transformation, the logistic transformation.
+
+# 10.8.1 logistic transformation
+
+When  p is a proportion or probability, the quantity that is being logged,  p/(1-p), is called the odds. In this case  p is the proportion of infants that survived. The odds tell us how many more infants are expected to survive than to die. The log transformation makes this symmetric. If the rates are the same, then the log odds is 0.
+
+
+
+# 10.8.2 show the data
+
+```{r}
+data("gapminder")
+gapminder<-gapminder%>%
+  mutate(group=case_when(
+    region%in%c("Western Europe", "Northern Europe","Southern Europe", 
+                    "Northern America", "Australia and New Zealand") ~ "West",
+    region %in% "Northern Africa" ~ "Northern Africa",
+    region %in% c("Eastern Asia", "South-Eastern Asia") ~ "East Asia",
+    region == "Southern Asia"~ "Southern Asia",
+    region %in% c("Central America", "South America", "Caribbean") ~ "Latin America",
+    continent == "Africa" & region != "Northern Africa" ~ "Sub-Saharan Africa",
+    region %in% c("Melanesia", "Micronesia", "Polynesia") ~ "Pacific Islands"))
+
+gapminder<-gapminder%>%ifelse(is.na(infant_mortality),0,infant_mortality)
+infant_survival_rate<-gapminder%>%summarize(infant_survival_rate=1-sum(infant_mortality/1000*population)/sum(population))%>%pull(infant_mortality)
+infant_survival_rate
+
+gapminder%>%
+  
+  filter(year%in%present_year&!is.na(infant_mortality)&!is.na(group))%>%
+  ggplot(aes(dollars_per_day,infant_survival_rate,col=group))+
+  scale_x_continuous(trans = 'log2')+
+  
+  geom_density()
+  
+  
+
+```
+
+
+we see that there is a large amount of variability. We see that countries from the same regions can be quite different and that countries with the same income can have different survival rates. For example, while on average Sub-Saharan Africa had the worse health and economic outcomes, there is wide variability within that group. Mauritius and Botswana are doing better than Angola and Sierra Leone, with Mauritius comparable to Western countries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

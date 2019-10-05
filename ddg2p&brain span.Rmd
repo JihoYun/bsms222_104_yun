@@ -60,8 +60,27 @@ head(order_)
 
 
 
+```{r}
+sum(g$gene_symbol=='ACADM')
+```
+
+```{r}
+g<-g%>%mutate(normal_ddg2p=ifelse(gene_symbol%in%ddg2p$X1,'ddg2p','normal'))
 
 
+```
+
+```{r}
+new_table<-cbind(g$normal_ddg2p,g$gene_symbol,e)
+colnames(new_table)[1]='normal_ddg2p'
+colnames(new_table)[2]='gene_type'
+
+long_table<-gather(new_table,patient,RNA_expression,X1:X35,factor_key = TRUE)
+```
+```{r}
+long_table%>%group_by(normal_ddg2p)%>%ggplot(aes(normal_ddg2p,RNA_expression))+
+  geom_point()+facet_wrap(~patient)
+```
 
 
 

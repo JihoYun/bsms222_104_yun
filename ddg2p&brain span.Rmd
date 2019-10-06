@@ -1,0 +1,117 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+install.packages('tidyverse')
+library(tidyverse)
+```
+
+```{r}
+load('data_brainspan_DFC.20190928.Rdata')
+
+ddg2p = read_delim('DDG2P_24_9_2019.with_pLI.txt', 
+               delim='\t', skip = 5, progress = F, 
+               col_names = F)
+
+hpo = read_delim('table.hpo_obo_20190924.txt', 
+               delim='\t', skip = 5, progress = F, 
+               col_names = F)
+
+
+
+```
+```{r}
+e1<-cbind(g$gene_symbol,e)
+colnames(e1)=c(0:35)
+
+order_<-data.frame(matrix(ncol = 35, nrow = 5))
+gene_symbol_<-data.frame(matrix(ncol = 35, nrow = 5))
+colnames(order_)<-c(1:35)
+colnames(gene_symbol_)<-c(1:35)
+
+
+for(i in 1:36){
+    order_[[i]]<-order(e1[[i]],decreasing = TRUE)[1:5]}
+order_<-order_[,2:36]
+colnames(order_)<-c(1:35)
+
+for(i in 1:35){
+  for(j in 1:5){
+    order_[j,i]<-as.character(e1[order_[j,i],1])
+  }
+}
+as.matrix(order_)
+order_<-t(order_)
+order_<-as.tibble(order_)
+colnames(order_)<-c('1st','2nd','3rd','4th','5th')
+order_<-cbind(s$age,order_)
+colnames(order_)[1]<-'age'
+```
+
+```{r}
+head(order_)
+```
+
+
+
+```{r}
+sum(g$gene_symbol=='ACADM')
+```
+
+```{r}
+g<-g%>%mutate(normal_ddg2p=ifelse(gene_symbol%in%ddg2p$X1,'ddg2p','normal'))
+
+
+```
+
+```{r}
+new_table<-cbind(g$normal_ddg2p,g$gene_symbol,e)
+colnames(new_table)[1]='normal_ddg2p'
+colnames(new_table)[2]='gene_type'
+
+long_table<-gather(new_table,patient,RNA_expression,X1:X35,factor_key = TRUE)
+```
+```{r}
+long_table%>%group_by(normal_ddg2p)%>%ggplot(aes(normal_ddg2p,RNA_expression))+
+  geom_point()+facet_wrap(~patient)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

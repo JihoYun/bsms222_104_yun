@@ -1,0 +1,216 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+
+# 12 Robust summaries
+
+```{r}
+library(tidyverse)
+library(dslabs)
+```
+
+# 12.1 outliers
+
+```{r}
+data("outlier_example")
+str(outlier_example)
+```
+
+```{r}
+mean(outlier_example)
+sd(outlier_example)
+```
+```{r}
+qplot(outlier_example)
+```
+
+```{r}
+boxplot(outlier_example)
+```
+
+# 12.2 median
+
+When we have an outlier like this, the average can become very large. Mathematically, we can make the average as large as we want by simply changing one number: with 500 data points, we can increase the average by any amount  Δ by adding  Δ× 500 to a single number. The median, defined as the value for which half the values are smaller and the other half are bigger, is robust to such outliers. No matter how large we make the largest point, the median remains the same.
+```{r}
+median(outlier_example)
+```
+# 12.3 the inter quartile range(IQR)
+The box in boxplots are defined by the first and third quartile. These are meant to provide an idea of the variability in the data: 50% of the data is within this range. The difference between the 3rd and 1st quartile (or 75th and 25th percentiles) is referred to as the inter quartile range (IQR). As is the case with the median, this quantity will be robust to outliers as large values do not affect it. We can do some math to see that for normally distributed data, the IQR / 1.349 approximates the standard deviation of the data had an outlier not been present. We can see that this works well in our example since we get a standard deviation estimate of
+```{r}
+IQR(outlier_example)/1.349
+```
+
+# 12.4 tukey's definition of an outlier
+
+```{r}
+q3<-qnorm(0.75)
+q1<-qnorm(0.25)
+iqr<-q3-q1
+r<-c(q1-1.5*iqr,q3+1.5*iqr)
+r
+```
+If we want an outlier to be rarer, we can increase the 1.5 to a larger number. Tukey also used 3 and called these far out outliers. With a normal distribution, 100% of the data falls in this interval. This translates into about 2 in a million chance of being outside the range. In the geom_boxplot function, this can be controlled by the outlier.size argument, which defaults to 1.5.
+```{r}
+max_height<-quantile(outlier_example,0.75)+3*IQR(outlier_example)
+max_height
+```
+```{r}
+x<-outlier_example[outlier_example<max_height]
+qqnorm(x)
+qqline(x)
+```
+
+# 12.5 median absolute deviation
+
+To compute the MAD, we first compute the median, and then for each value we compute the distance between that value and the median. The MAD is defined as the median of these distances.
+```{r}
+mad(outlier_example)
+```
+
+# 12.6 exercises 
+```{r}
+install.packages('HistData')
+```
+
+```{r}
+library(HistData)
+data(Galton)
+x<-Galton$child
+```
+
+1.Compute the average and median of these data. 
+```{r}
+median(x)
+mean(x)
+```
+2.Compute the median and median absolute deviation of these data.
+```{r}
+median(x)
+sd(x)
+mad(x)
+```
+3.Now suppose Galton made a mistake when entering the first value and forgot to use the decimal point. You can imitate this error by typing:
+```{r}
+x_with_error<-x
+x_with_error[1]<-x_with_error[1]*10
+```
+```{r}
+mean(x_with_error)
+```
+0.6
+4.How many inches does the SD grow after this mistake?
+```{r}
+sd(x_with_error)
+```
+16
+5.How many inches does the median grow after this mistake?
+```{r}
+median(x_with_error)
+```
+x
+6.How many inches does the MAD grow after this mistake?
+```{r}
+mad(x_with_error)
+```
+x
+7.How could you use exploratory data analysis to detect that an error was made?
+
+A. Since it is only one value out of many, we will not be able to detect this.
+
+B. We would see an obvious shift in the distribution.
+
+C. A boxplot, histogram, or qq-plot would reveal a clear outlier.
+
+D. A scatter plot would show high levels of measurement error.
+
+c
+8.How much can the average accidentally grow with mistakes like this? Write a function called error_avg that takes a value k and returns the average of the vector x after the first entry changed to k. Show the results for k=10000 and k=-10000.
+
+```{r}
+error_avg<-function(k,x){
+  x<-c(k,x)
+  mean(x)
+}
+```
+```{r}
+error_avg(10000,x)
+error_avg(-10000,x)
+```
+
+
+# 12.7 Case study: self-reported student heights
+
+```{r}
+library(dslabs)
+data("reported_heights")
+head(reported_heights)
+```
+```{r}
+reported_heights<-reported_heights%>%
+  mutate(original_heights=height,height=as.numeric(height))
+```
+```{r}
+reported_heights%>%
+  filter(is.na(height))%>%
+  head
+```
+```{r}
+reported_heights<-filter(reported_heights,!is.na(height))
+```
+```{r}
+reported_heights%>%
+  group_by(sex)%>%
+  summarise(average=mean(height),sd=sd(height),
+            median=median(height),MAD=mad(height))
+```
+
+```{r}
+reported_heights%>%
+  arrange(desc(height))%>%
+  top_n(10,height)
+```
+```{r}
+max_height<-quantile(reported_heights$height,.75)+3*IQR(reported_heights$height)
+min_height<-quantile(reported_heights$height,.25)-3*IQR(reported_heights$height)
+c(min_height,max_height)
+```
+```{r}
+reported_heights%>%
+  filter(!between(height,min_height,max_height))%>%
+  select(original_heights)%>%
+  head(n=10)
+```
+Examining these heights carefully, we see two common mistakes: entries in centimeters, which turn out to be too large, and entries of the form x.y with x and y representing feet and inches respectively, which turn out to be too small. Some of the even smaller values, such as 1.6, could be entries in meters.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

@@ -7,8 +7,19 @@ This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute
 
 Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
 
+
+
 ```{r}
-install.packages('tidyverse')
+install.packages('cowplot')
+```
+```{r}
+library(cowplot)
+```
+```{r}
+plot_grid(p1,p2,ncol=2)  #그림 두개 합치는 방법.
+```
+
+```{r}
 library(tidyverse)
 ```
 
@@ -74,23 +85,87 @@ g<-g%>%mutate(normal_ddg2p=ifelse(gene_symbol%in%ddg2p$X1,'ddg2p','normal'))
 new_table<-cbind(g$normal_ddg2p,g$gene_symbol,e)
 colnames(new_table)[1]='normal_ddg2p'
 colnames(new_table)[2]='gene_type'
+colnames(new_table)[3:37]=paste(s$age,',',s$column_num)[1:35]
+long_table<-gather(new_table,patient,RNA_expression,colnames(new_table)[3:37],factor_key = TRUE)
+long_table = separate(long_table, patient, sep = ',', into = c('age', 'patient_num'), remove = F)
+long_table$patient_num<-gsub(" ","",long_table$patient_num)
 
-long_table<-gather(new_table,patient,RNA_expression,X1:X35,factor_key = TRUE)
+long_table<-long_table%>%mutate(human_group=case_when(
+  patient_num%in%c(as.character(1:7))~'stage1(8pcw~13pcw)',
+  patient_num%in%c(as.character(8:14))~'stage2(13pcw~21pcw)',
+  patient_num%in%c(as.character(15:21))~'stage3(24pcw~1yrs)',
+  patient_num%in%c(as.character(22:28))~'stage4(2yrs~13yrs)',
+  TRUE~'stage5(18yrs~40yrs)'))
 ```
 ```{r}
 long_table%>%group_by(normal_ddg2p)%>%ggplot(aes(normal_ddg2p,RNA_expression))+
-  geom_point()+facet_wrap(~patient)
+  geom_point()+facet_wrap(~age)
+```
+```{r}
+long_table%>%group_by(patient)%>%ggplot(aes(patient,RNA_expression,col=normal_ddg2p))+geom_point()+coord_flip()
+```
+```{r}
+max(long_table$RNA_expression)
+```
+
+```{r}
+long_table%>%filter(patient%in%c('X1','X2'))%>%group_by(patient)%>%ggplot(aes(patient,RNA_expression,fill=normal_ddg2p))+geom_bar(stat='identity',position = position_dodge())
+```
+
+```{r}
+long_table%>%group_by(normal_ddg2p)%>%ggplot(aes(patient,RNA_expression,col=normal_ddg2p))+
+  geom_point()
+```
+
+
+```{r}
+long_table%>%filter(!RNA_expression<=3000&!RNA_expression>=15000)%>%ggplot(aes(normal_ddg2p,RNA_expression,fill=normal_ddg2p))+geom_boxplot()+scale_fill_hue(l=99, c=99)
+
+
+```
+
+```{r}
+long_table%>%ggplot(aes(normal_ddg2p,RNA_expression,fill=normal_ddg2p))+geom_boxplot()+scale_y_log10()
+```
+
+```{r}
+long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.000001,RNA_expression))%>%
+              ggplot(aes(normal_ddg2p,log10(RNA_expression),col=normal_ddg2p))+
+  geom_violin()+facet_wrap(~age) 
+
+long_table%>%filter(normal_ddg2p=='normal')%>%summarize(average=mean(RNA_expression))%>%pull(average)
+long_table%>%filter(normal_ddg2p=='ddg2p')%>%summarize(average=mean(RNA_expression))%>%pull(average)
+long_table%>%filter(normal_ddg2p=='normal')%>%summarize(max=max(RNA_expression))%>%pull(max)
+long_table%>%filter(normal_ddg2p=='ddg2p')%>%summarize(max=max(RNA_expression))%>%pull(max)
+
+sum(long_table$RNA_expression==0)
+```
+```{r}
+long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.0000001,RNA_expression))%>%
+              ggplot(aes(normal_ddg2p,log2(RNA_expression),col=normal_ddg2p))+
+  geom_jitter(size=0.01)+facet_wrap(~human_group) 
+```
+```{r}
+long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.0000001,RNA_expression))%>%
+              ggplot(aes(normal_ddg2p,log2(RNA_expression),fill=normal_ddg2p))+
+  geom_boxplot()+scale_fill_hue(l=99, c=99)+
+  geom_jitter(col='yellow',size=0.005,alpha=0.007)+facet_wrap(~human_group)+theme_bw()+
+  theme(strip.background =element_rect(fill="pink"))+
+  theme(strip.text = element_text(colour = 'white'))+
+  labs(title = 'RNA expression difference between ddg2p gene and non-ddg2p ordered by ages',x='',y='RNA expression in log2 scale')
+```
+
+
+```{r}
+long_table%>%filter(human_group=='prenatal'&normal_ddg2p=='normal')%>%summarize(mean=median((RNA_expression)))
+long_table%>%filter(human_group=='afterbirth'&normal_ddg2p=='normal')%>%summarize(mean=median((RNA_expression)))
 ```
 
 
 
-
-
-
-
-
-
-
+```{r}
+long_table%>%ggplot(aes(normal_ddg2p,RNA_expression,col=normal_ddg2p))+geom_point()
+```
 
 
 

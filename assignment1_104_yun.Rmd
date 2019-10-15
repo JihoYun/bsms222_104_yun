@@ -17,7 +17,7 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 나의 plot으로 내가 표현하고 싶었던 점은 발달단계별(사람의 나이) ddg2p와 non-ddg2p related gene의 발현량의 평균과 최대값의 대소비교와 발달 단계별로 가지는 normal gene expression의 차이점을 표현하고 싶었다. 
 
 
-# tidyverse package...opening 
+# tidyverse package...opening. 
 ```{r}
 library(tidyverse)
 ```

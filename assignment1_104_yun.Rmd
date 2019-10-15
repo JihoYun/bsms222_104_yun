@@ -1,0 +1,185 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+
+# Assignment1 2017250104 윤지호 
+나의 원래 주제는 뇌발달 단계별 중요 유전자와 발달장애 유전자의 관계를 짓고, 발달 과정에 존재하는 
+치명적인 역할을 하는 유전자들을 mapping하려고 하였으나, 발달장애 유전자가 뇌발달의 가장 많이 발현되는
+유전자가 아님을 우선 확인하여,  주제를 조금 바꾸어서 진행하였다.
+결국 내주제는 과연 뇌발달 과정에 작용하는 수많은 유전자들 가운데 ddg2p에 관여하는 유전자와 그렇지 않은
+정상유전자의 발현량의 경향성을 살펴보는 것이다. 즉, 내 처음주제의 내 가설이였던 가장 많이 발현되는 유전자의 결함으로 인해 발달장애가 생긴다는 생각에 대한 반론을 하기 위해서 이 주제를 선택하였다.
+나의 plot으로 내가 표현하고 싶었던 점은 발달단계별(사람의 나이) ddg2p와 non-ddg2p related gene의 발현량의 평균과 최대값의 대소비교와 발달 단계별로 가지는 normal gene expression의 차이점을 표현하고 싶었다. 
+
+
+# tidyverse package...opening 
+```{r}
+library(tidyverse)
+```
+# load data files
+```{r}
+load('data_brainspan_DFC.20190928.Rdata')
+
+ddg2p = read_delim('DDG2P_24_9_2019.with_pLI.txt', 
+               delim='\t', skip = 5, progress = F, 
+               col_names = F)
+
+```
+# 특정 나이때에 가장 많이 발현되는 유전자 5개를 선별하여 새로운 데이터프레임을 만들어서 ddg2p가 거의 존재하지 않음을 확인하였다.
+```{r}
+e1<-cbind(g$gene_symbol,e)
+colnames(e1)=c(0:35)
+
+order_<-data.frame(matrix(ncol = 35, nrow = 5))
+gene_symbol_<-data.frame(matrix(ncol = 35, nrow = 5))
+colnames(order_)<-c(1:35)
+colnames(gene_symbol_)<-c(1:35)
+
+
+for(i in 1:36){
+    order_[[i]]<-order(e1[[i]],decreasing = TRUE)[1:5]}
+order_<-order_[,2:36]
+colnames(order_)<-c(1:35)
+
+for(i in 1:35){
+  for(j in 1:5){
+    order_[j,i]<-as.character(e1[order_[j,i],1])
+  }
+}
+as.matrix(order_)
+order_<-t(order_)
+order_<-as.tibble(order_)
+colnames(order_)<-c('1st','2nd','3rd','4th','5th')
+order_<-cbind(s$age,order_)
+colnames(order_)[1]<-'age'
+```
+
+```{r}
+head(order_)
+```
+# 유전자를 ddg2p와 normal로 구분하여 새로운 column에 저장 
+```{r}
+g<-g%>%mutate(normal_ddg2p=ifelse(gene_symbol%in%ddg2p$X1,'ddg2p','normal'))
+```
+# long table을 형성(long format), 유전자가 ddg2p인지 normal인지, 나이와 Rna expression, 내가 지정한 developmental stage에 대한 정보를 가진 table 형성.
+```{r}
+new_table<-cbind(g$normal_ddg2p,g$gene_symbol,e)
+colnames(new_table)[1]='normal_ddg2p'
+colnames(new_table)[2]='gene_type'
+colnames(new_table)[3:37]=paste(s$age,',',s$column_num)[1:35]
+long_table<-gather(new_table,patient,RNA_expression,colnames(new_table)[3:37],factor_key = TRUE)
+long_table = separate(long_table, patient, sep = ',', into = c('age', 'patient_num'), remove = F)
+long_table$patient_num<-gsub(" ","",long_table$patient_num)
+
+long_table<-long_table%>%mutate(human_group=case_when(
+  patient_num%in%c(as.character(1:7))~'stage1(8pcw~13pcw)',
+  patient_num%in%c(as.character(8:14))~'stage2(13pcw~21pcw)',
+  patient_num%in%c(as.character(15:21))~'stage3(24pcw~1yrs)',
+  patient_num%in%c(as.character(22:28))~'stage4(2yrs~13yrs)',
+  TRUE~'stage5(18yrs~40yrs)'))
+```
+
+# 예시 graph들...
+```{r}
+long_table%>%group_by(normal_ddg2p)%>%ggplot(aes(normal_ddg2p,RNA_expression))+
+  geom_point()+facet_wrap(~age)
+```
+```{r}
+long_table%>%group_by(patient)%>%ggplot(aes(patient,RNA_expression,col=normal_ddg2p))+geom_point()+coord_flip()
+```
+
+```{r}
+long_table%>%filter(patient_num%in%c('1','2'))%>%group_by(patient)%>%ggplot(aes(patient,RNA_expression,fill=normal_ddg2p))+geom_bar(stat='identity',position = position_dodge())
+```
+
+```{r}
+long_table%>%group_by(normal_ddg2p)%>%ggplot(aes(patient,RNA_expression,col=normal_ddg2p))+
+  geom_point()
+```
+
+
+```{r}
+long_table%>%ggplot(aes(normal_ddg2p,log10(RNA_expression),fill=normal_ddg2p))+geom_boxplot()+scale_fill_hue(l=99, c=99)
+```
+
+```{r}
+long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.0000001,RNA_expression))%>%
+ggplot(aes(normal_ddg2p,RNA_expression,fill=normal_ddg2p))+geom_boxplot()+scale_y_log10()
+```
+
+```{r}
+long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.000001,RNA_expression))%>%
+              ggplot(aes(normal_ddg2p,log10(RNA_expression),col=normal_ddg2p))+
+  geom_violin()+facet_wrap(~age) 
+
+long_table%>%filter(normal_ddg2p=='normal')%>%summarize(average=mean(RNA_expression))%>%pull(average)
+long_table%>%filter(normal_ddg2p=='ddg2p')%>%summarize(average=mean(RNA_expression))%>%pull(average)
+long_table%>%filter(normal_ddg2p=='normal')%>%summarize(max=max(RNA_expression))%>%pull(max)
+long_table%>%filter(normal_ddg2p=='ddg2p')%>%summarize(max=max(RNA_expression))%>%pull(max)
+
+sum(long_table$RNA_expression==0)
+```
+```{r}
+long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.0000001,RNA_expression))%>%
+              ggplot(aes(normal_ddg2p,log2(RNA_expression),col=normal_ddg2p))+
+  geom_jitter(size=0.01)+facet_wrap(~human_group) 
+```
+# 아래 두가지 그래프
+```{r}
+long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.0000001,RNA_expression))%>%
+              ggplot(aes(normal_ddg2p,log2(RNA_expression),fill=normal_ddg2p))+
+  geom_violin()+scale_fill_hue(l=99, c=99)+
+  geom_jitter(col='yellow',size=0.005,alpha=0.007)+facet_wrap(~human_group)+theme_bw()+
+  theme(strip.background =element_rect(fill="pink"))+
+  theme(strip.text = element_text(colour = 'white'))+
+  labs(title = 'RNA expression difference between ddg2p gene and non-ddg2p ordered by ages',x='',y='RNA expression in log2 scale')
+```
+
+```{r}
+long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.0000001,RNA_expression))%>%
+              ggplot(aes(normal_ddg2p,log2(RNA_expression),fill=normal_ddg2p))+
+  geom_boxplot()+scale_fill_hue(l=99, c=99)+
+  geom_jitter(col='yellow',size=0.005,alpha=0.007)+facet_wrap(~human_group)+theme_bw()+
+  theme(strip.background =element_rect(fill="pink"))+
+  theme(strip.text = element_text(colour = 'white'))+
+  labs(title = 'RNA expression difference between ddg2p gene and non-ddg2p ordered by ages',x='',y='RNA expression in log2 scale')
+```
+이 두가지 그래프를 살펴보면 어떤면에서는 violin이 어떤면에서는 boxplot이 좋다. violin자체로는 평균값을 알지 못한다는 단점이 있지만 전체적인 유전자의 분포를 살펴볼수 있고, 유전자의 발현량은 normal gene에서 가장 크게 발현되지만 평균값과 전반적인 분포는 ddg2p가 높음을 알수 있다. 이말인 즉슨, ddg2p 역시 극단적으로 많이 발현되는 유전자들을 제외하고서는 중요한 역할을 지닌다는 것이다. 또한 발현량이 아예존재하지 않는 유전자도 normal에서 많이 발견된다. 이때문에 boxplot을 살펴보면 구간으로 나오지 않고 아래까지 box가 뻗어 있음을 알수 있다. 내가 전달하고 싶었던 메시지는 violin을 사용한 첫번째 plot인것 같다. 
+(RNA expression=0인 값을 처리하기 위해서 이들을 1*10^-7으로 치환하였다.log scale을 사용하면 0의 값을 사용할수 없기때문에 기준선 즉, 발현이 안되는 값으로 지정한것으로 보면 된다.)
+
+```{r}
+long_table%>%filter(human_group=='prenatal'&normal_ddg2p=='normal')%>%summarize(mean=median((RNA_expression)))
+long_table%>%filter(human_group=='afterbirth'&normal_ddg2p=='normal')%>%summarize(mean=median((RNA_expression)))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

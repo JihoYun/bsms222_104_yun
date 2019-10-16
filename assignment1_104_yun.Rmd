@@ -17,7 +17,7 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 나의 plot으로 내가 표현하고 싶었던 점은 발달단계별(사람의 나이) ddg2p와 non-ddg2p related gene의 발현량의 평균과 최대값의 대소비교와 발달 단계별로 가지는 normal gene expression의 차이점을 표현하고 싶었다. 
 
 
-# tidyverse package...opening. 
+# tidyverse package...opening 
 ```{r}
 library(tidyverse)
 ```
@@ -84,14 +84,12 @@ long_table<-long_table%>%mutate(human_group=case_when(
   TRUE~'stage5(18yrs~40yrs)'))
 ```
 
-# 예시 graph들...
+# 예시 graph들.....
 ```{r}
 long_table%>%group_by(normal_ddg2p)%>%ggplot(aes(normal_ddg2p,RNA_expression))+
   geom_point()+facet_wrap(~age)
 ```
-```{r}
-long_table%>%group_by(patient)%>%ggplot(aes(patient,RNA_expression,col=normal_ddg2p))+geom_point()+coord_flip()
-```
+
 
 ```{r}
 long_table%>%filter(patient_num%in%c('1','2'))%>%group_by(patient)%>%ggplot(aes(patient,RNA_expression,fill=normal_ddg2p))+geom_bar(stat='identity',position = position_dodge())
@@ -102,10 +100,6 @@ long_table%>%group_by(normal_ddg2p)%>%ggplot(aes(patient,RNA_expression,col=norm
   geom_point()
 ```
 
-
-```{r}
-long_table%>%ggplot(aes(normal_ddg2p,log10(RNA_expression),fill=normal_ddg2p))+geom_boxplot()+scale_fill_hue(l=99, c=99)
-```
 
 ```{r}
 long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.0000001,RNA_expression))%>%
@@ -150,7 +144,7 @@ long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.0000001,RNA_expres
   labs(title = 'RNA expression difference between ddg2p gene and non-ddg2p ordered by ages',x='',y='RNA expression in log2 scale')
 ```
 이 두가지 그래프를 살펴보면 어떤면에서는 violin이 어떤면에서는 boxplot이 좋다. violin자체로는 평균값을 알지 못한다는 단점이 있지만 전체적인 유전자의 분포를 살펴볼수 있고, 유전자의 발현량은 normal gene에서 가장 크게 발현되지만 평균값과 전반적인 분포는 ddg2p가 높음을 알수 있다. 이말인 즉슨, ddg2p 역시 극단적으로 많이 발현되는 유전자들을 제외하고서는 중요한 역할을 지닌다는 것이다. 또한 발현량이 아예존재하지 않는 유전자도 normal에서 많이 발견된다. 이때문에 boxplot을 살펴보면 구간으로 나오지 않고 아래까지 box가 뻗어 있음을 알수 있다. 내가 전달하고 싶었던 메시지는 violin을 사용한 첫번째 plot인것 같다. 
-(RNA expression=0인 값을 처리하기 위해서 이들을 1*10^-7으로 치환하였다.log scale을 사용하면 0의 값을 사용할수 없기때문에 기준선 즉, 발현이 안되는 값으로 지정한것으로 보면 된다.)
+(RNA expression=0인 값을 처리하기 위해서 이들을 1*10^-7으로 치환하였다.log scale을 사용하면 0의 값을 사용할수 없기때문에 기준선 즉, 발현이 안되는 값으로 지정한것으로 보면 된다..)
 
 ```{r}
 long_table%>%filter(human_group=='prenatal'&normal_ddg2p=='normal')%>%summarize(mean=median((RNA_expression)))

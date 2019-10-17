@@ -3,11 +3,6 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
-
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
-
-
 # Assignment1 2017250104 윤지호 
 나의 원래 주제는 뇌발달 단계별 중요 유전자와 발달장애 유전자의 관계를 짓고, 발달 과정에 존재하는 
 치명적인 역할을 하는 유전자들을 mapping하려고 하였으나, 발달장애 유전자가 뇌발달의 가장 많이 발현되는
@@ -85,18 +80,13 @@ long_table<-long_table%>%mutate(human_group=case_when(
 ```
 
 # 예시 graph들.....
-```{r}
-long_table%>%group_by(normal_ddg2p)%>%ggplot(aes(normal_ddg2p,RNA_expression))+
-  geom_point()+facet_wrap(~age)
-```
-
 
 ```{r}
 long_table%>%filter(patient_num%in%c('1','2'))%>%group_by(patient)%>%ggplot(aes(patient,RNA_expression,fill=normal_ddg2p))+geom_bar(stat='identity',position = position_dodge())
 ```
 
 ```{r}
-long_table%>%group_by(normal_ddg2p)%>%ggplot(aes(patient,RNA_expression,col=normal_ddg2p))+
+long_table%>%group_by(normal_ddg2p)%>%ggplot(aes(patient_num,RNA_expression,col=normal_ddg2p))+
   geom_point()
 ```
 
@@ -133,47 +123,16 @@ long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.0000001,RNA_expres
   theme(strip.text = element_text(colour = 'white'))+
   labs(title = 'RNA expression difference between ddg2p gene and non-ddg2p ordered by ages',x='',y='RNA expression in log2 scale')
 ```
-
+#
 ```{r}
 long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.0000001,RNA_expression))%>%
               ggplot(aes(normal_ddg2p,log2(RNA_expression),fill=normal_ddg2p))+
   geom_boxplot()+scale_fill_hue(l=99, c=99)+
-  geom_jitter(col='yellow',size=0.005,alpha=0.007)+facet_wrap(~human_group)+theme_bw()+
-  theme(strip.background =element_rect(fill="pink"))+
-  theme(strip.text = element_text(colour = 'white'))+
+  geom_jitter(col='yellow',size=0.005,alpha=0.007)+facet_wrap(~human_group)+
   labs(title = 'RNA expression difference between ddg2p gene and non-ddg2p ordered by ages',x='',y='RNA expression in log2 scale')
 ```
 이 두가지 그래프를 살펴보면 어떤면에서는 violin이 어떤면에서는 boxplot이 좋다. violin자체로는 평균값을 알지 못한다는 단점이 있지만 전체적인 유전자의 분포를 살펴볼수 있고, 유전자의 발현량은 normal gene에서 가장 크게 발현되지만 평균값과 전반적인 분포는 ddg2p가 높음을 알수 있다. 이말인 즉슨, ddg2p 역시 극단적으로 많이 발현되는 유전자들을 제외하고서는 중요한 역할을 지닌다는 것이다. 또한 발현량이 아예존재하지 않는 유전자도 normal에서 많이 발견된다. 이때문에 boxplot을 살펴보면 구간으로 나오지 않고 아래까지 box가 뻗어 있음을 알수 있다. 내가 전달하고 싶었던 메시지는 violin을 사용한 첫번째 plot인것 같다. 
-(RNA expression=0인 값을 처리하기 위해서 이들을 1*10^-7으로 치환하였다.log scale을 사용하면 0의 값을 사용할수 없기때문에 기준선 즉, 발현이 안되는 값으로 지정한것으로 보면 된다..)
-
-```{r}
-long_table%>%filter(human_group=='prenatal'&normal_ddg2p=='normal')%>%summarize(mean=median((RNA_expression)))
-long_table%>%filter(human_group=='afterbirth'&normal_ddg2p=='normal')%>%summarize(mean=median((RNA_expression)))
-```
+(RNA expression=0인 값을 처리하기 위해서 이들을 1*10^-7으로 치환하였다.log scale을 사용하면 0의 값을 사용할수 없기때문에 기준선 즉, 발현이 안되는 값으로 지정한것으로 보면 된다.)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
-
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
-
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

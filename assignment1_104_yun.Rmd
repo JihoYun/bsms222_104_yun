@@ -135,7 +135,7 @@ p+facet_wrap(~human_group)+
   labs(title = 'RNA expression difference between ddg2p gene and non-ddg2p ordered by ages',x='',y='RNA expression in log2 scale')
 ```
 이 두가지 그래프를 살펴보면 어떤면에서는 violin이 어떤면에서는 boxplot이 좋다. violin자체로는 평균값을 알지 못한다는 단점이 있지만 전체적인 유전자의 분포를 살펴볼수 있고, 유전자의 발현량은 normal gene에서 가장 크게 발현되지만 평균값과 전반적인 분포는 ddg2p가 높음을 알수 있다. 이말인 즉슨, ddg2p 역시 극단적으로 많이 발현되는 유전자들을 제외하고서는 중요한 역할을 지닌다는 것이다. 또한 발현량이 아예존재하지 않는 유전자도 normal에서 많이 발견된다. 이때문에 boxplot을 살펴보면 구간으로 나오지 않고 아래까지 box가 뻗어 있음을 알수 있다. 내가 전달하고 싶었던 메시지는 violin을 사용한 첫번째 plot인것 같다. 
-(RNA expression=0인 값을 처리하기 위해서 이들을 1*10^-7으로 치환하였다.log scale을 사용하면 0의 값을 사용할수 없기때문에 기준선 즉, 발현이 안되는 값으로 지정한것으로 보면 된다.)
+(RNA expression=0인 값을 처리하기 위해서 이들을 1*10^-7으로 치환하였다.log scale을 사용하면 0의 값을 사용할수 없기때문에 기준선 즉, 발현이 안되는 값으로 지정한것으로 보면 된다..)
 
 
 

@@ -302,7 +302,7 @@ qplot(log10(B), prob, geom = "line")
 
 # 13.9 exercises
 
-1. One ball will be drawn at random from a box containing: 3 cyan balls, 5 magenta balls, and 7 yellow balls. What is the probability that the ball will be cyan?
+1. One ball will be drawn at random from a box containing: 3 cyan balls, 5 magenta balls, and 7 yellow balls. What is the probability that the ball will be cyan?.
 ```{r}
 3/15
 ```

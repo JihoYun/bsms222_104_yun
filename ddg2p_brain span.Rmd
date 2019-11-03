@@ -119,13 +119,14 @@ long_table%>%group_by(normal_ddg2p)%>%ggplot(aes(patient,RNA_expression,col=norm
 
 
 ```{r}
-long_table%>%filter(!RNA_expression<=3000&!RNA_expression>=15000)%>%ggplot(aes(normal_ddg2p,RNA_expression,fill=normal_ddg2p))+geom_boxplot()+scale_fill_hue(l=99, c=99)
+long_table%>%ggplot(aes(normal_ddg2p,log10(RNA_expression),fill=normal_ddg2p))+geom_boxplot()+scale_fill_hue(l=99, c=99)
 
 
 ```
 
 ```{r}
-long_table%>%ggplot(aes(normal_ddg2p,RNA_expression,fill=normal_ddg2p))+geom_boxplot()+scale_y_log10()
+long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.0000001,RNA_expression))%>%
+ggplot(aes(normal_ddg2p,RNA_expression,fill=normal_ddg2p))+geom_boxplot()+scale_y_log10()
 ```
 
 ```{r}
@@ -148,13 +149,23 @@ long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.0000001,RNA_expres
 ```{r}
 long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.0000001,RNA_expression))%>%
               ggplot(aes(normal_ddg2p,log2(RNA_expression),fill=normal_ddg2p))+
-  geom_boxplot()+scale_fill_hue(l=99, c=99)+
+  geom_violin()+scale_fill_hue(l=99, c=99)+
   geom_jitter(col='yellow',size=0.005,alpha=0.007)+facet_wrap(~human_group)+theme_bw()+
   theme(strip.background =element_rect(fill="pink"))+
   theme(strip.text = element_text(colour = 'white'))+
   labs(title = 'RNA expression difference between ddg2p gene and non-ddg2p ordered by ages',x='',y='RNA expression in log2 scale')
 ```
 
+```{r}
+long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.0000001,RNA_expression))%>%
+              ggplot(aes(normal_ddg2p,log2(RNA_expression),fill=normal_ddg2p))+
+  geom_boxplot()+scale_fill_hue(l=99, c=99)+
+  geom_jitter(col='yellow',size=0.005,alpha=0.007)+facet_wrap(~human_group)+theme_bw()+
+  theme(strip.background =element_rect(fill="pink"))+
+  theme(strip.text = element_text(colour = 'white'))+
+  labs(title = 'RNA expression difference between ddg2p gene and non-ddg2p ordered by ages',x='',y='RNA expression in log2 scale')
+```
+###
 
 ```{r}
 long_table%>%filter(human_group=='prenatal'&normal_ddg2p=='normal')%>%summarize(mean=median((RNA_expression)))

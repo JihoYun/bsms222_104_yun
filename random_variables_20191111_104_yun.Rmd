@@ -1,0 +1,171 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+# 14 Random variables
+
+# 14.1 random variables
+
+```{r}
+beads <- rep( c("red", "blue"), times = c(2,3))
+X <- ifelse(sample(beads, 1) == "blue", 1, 0)
+```
+
+```{r}
+ifelse(sample(beads, 1) == "blue", 1, 0)
+ifelse(sample(beads, 1) == "blue", 1, 0)
+ifelse(sample(beads, 1) == "blue", 1, 0)
+```
+# 14.2 sampling models
+
+We are going to define a random variable S that will represent the casino’s total winnings. Let’s start by constructing the urn. A roulette wheel has 18 red pockets, 18 black pockets and 2 green ones. So playing a color in one game of roulette is equivalent to drawing from this urn:
+```{r}
+color <- rep(c("Black", "Red", "Green"), c(18, 18, 2))
+```
+
+```{r}
+n <- 1000
+X <- sample(ifelse(color == "Red", -1, 1),  n, replace = TRUE)
+X[1:10]
+```
+```{r}
+X <- sample(c(-1,1), n, replace = TRUE, prob=c(9/19, 10/19))
+```
+
+```{r}
+S<-sum(X)
+S
+```
+# 14.3 the probability distribution of a random variable
+
+If you run the code above, you see that  S changes every time. This is, of course, because  S is a random variable.
+
+```{r}
+n <- 1000
+B <- 10000
+roulette_winnings <- function(n){
+  X <- sample(c(-1,1), n, replace = TRUE, prob=c(9/19, 10/19))
+  sum(X)
+}
+S <- replicate(B, roulette_winnings(n))
+```
+Now we can ask the following: in our simulations, how often did we get sums less than or equal to a?
+```{r}
+mean(S <= a)
+```
+
+```{r}
+mean(S<0)
+```
+```{r}
+library(tidyverse)
+ggplot()+geom_histogram(aes(S))
+```
+
+```{r}
+n <- 1000
+pbinom(n/2, size = n, prob = 10/19)
+```
+
+```{r}
+pbinom(n/2-1, size = n, prob = 10/19)
+```
+
+# 14.4 distributions versus probability distributions
+
+we define the average and standard deviation. These are defined with a straightforward operation of the vector containing the list of numbers x:
+```{r}
+m <- sum(x)/length(x)
+s <- sqrt(sum((x - m)^2) / length(x))
+```
+
+# 14.5 notation for random variables
+
+In statistical textbooks, upper case letters are used to denote random variables and we follow this convention here. Lower case letters are used for observed values.
+
+# 14.6 the expected value and standard error
+The first important concept to learn is the expected value. In statistics books, it is common to use letter  
+E like this:
+E[X]
+
+```{r}
+B <- 10^6
+x <- sample(c(-1,1), B, replace = TRUE, prob=c(9/19, 10/19))
+mean(x)
+```
+If our draws are independent, then the standard error of the sum is given by the equation:
+
+√number of draws × standard deviation of the numbers in the urn
+
+```{r}
+2 * sqrt(90)/19
+```
+```{r}
+n <- 1000
+sqrt(n) * 2 * sqrt(90)/19
+```
+# 14.6.1 population sd versus the sample sd
+
+```{r}
+library(dslabs)
+x <- heights$height
+m <- mean(x)
+s <- sqrt(mean((x-m)^2))
+```
+
+```{r}
+identical(s, sd(x))
+s-sd(x)
+```
+
+```{r}
+n <- length(x)
+s-sd(x)*sqrt((n-1) / n)
+```
+
+```{r}
+sqrt(mean((x-m)^2))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

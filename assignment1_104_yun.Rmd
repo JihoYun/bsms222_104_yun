@@ -118,12 +118,14 @@ long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.0000001,RNA_expres
 long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.0000001,RNA_expression))%>%
               ggplot(aes(normal_ddg2p,log2(RNA_expression),fill=normal_ddg2p))+
   geom_violin()+scale_fill_hue(l=99, c=99)+
-  geom_jitter(col='yellow',size=0.005,alpha=0.007)+facet_wrap(~human_group)+theme_bw()+
+  #geom_jitter(col='yellow',size=0.005,alpha=0.007)+#facet_wrap(~human_group)+
+
+  theme_bw()+
   theme(strip.background =element_rect(fill="pink"))+
   theme(strip.text = element_text(colour = 'white'))+
-  labs(title = 'RNA expression difference between ddg2p gene and non-ddg2p ordered by ages',x='',y='RNA expression in log2 scale')
+  labs(title = 'RNA expression difference between ddg2p gene and normal ordered by ages',x='',y='RNA expression in log2 scale')
 ```
-#
+##
 ```{r}
 p<-long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.0000001,RNA_expression))%>%
               ggplot(aes(normal_ddg2p,log2(RNA_expression),fill=normal_ddg2p))+
@@ -132,10 +134,8 @@ p<-long_table%>%mutate(RNA_expression=ifelse(RNA_expression==0,0.0000001,RNA_exp
 ```{r}
  #+ geom_jitter(col='yellow',size=0.005,alpha=0.007)
 p+facet_wrap(~human_group)+
-  labs(title = 'RNA expression difference between ddg2p gene and non-ddg2p ordered by ages',x='',y='RNA expression in log2 scale')
+  labs(title = 'RNA expression difference between ddg2p gene and normal ordered by ages',x='',y='RNA expression in log2 scale')
 ```
-이 두가지 그래프를 살펴보면 어떤면에서는 violin이 어떤면에서는 boxplot이 좋다. violin자체로는 평균값을 알지 못한다는 단점이 있지만 전체적인 유전자의 분포를 살펴볼수 있고, 유전자의 발현량은 normal gene에서 가장 크게 발현되지만 평균값과 전반적인 분포는 ddg2p가 높음을 알수 있다. 이말인 즉슨, ddg2p 역시 극단적으로 많이 발현되는 유전자들을 제외하고서는 중요한 역할을 지닌다는 것이다. 또한 발현량이 아예존재하지 않는 유전자도 normal에서 많이 발견된다. 이때문에 boxplot을 살펴보면 구간으로 나오지 않고 아래까지 box가 뻗어 있음을 알수 있다. 내가 전달하고 싶었던 메시지는 violin을 사용한 첫번째 plot인것 같다. 
-(RNA expression=0인 값을 처리하기 위해서 이들을 1*10^-7으로 치환하였다.log scale을 사용하면 0의 값을 사용할수 없기때문에 기준선 즉, 발현이 안되는 값으로 지정한것으로 보면 된다..)
-
-
+많은 코멘트가 그랬듯이 jitter로 나타내었던 형광이 너무 돋보인다는 의견이 많아서 없앴다. 사실 분포를 보여주기보다는 최대값은 normal에서 나오지만 평균 발현량은 ddg2p가 높다는것이 핵심이기 때문에 없애는게 맞는것 같다. 또한 제목을 normal을 써서 legend와 통일하였고 바이올린 플랏은 5개의 stage로 나누는 것이 의미가 없다고 판단되어 하나로 합쳤다(5개 모두 같은 양상을 띄므로) 하지만, Boxplot의 경우, stage1의 normal 유전자의 평균값이 0인것이 중요하다고 생각하기 때문에 그대로 두었다.
+코멘트 2의 의견중에서 gene consequence로 나누는 것은 의미가 없다. 왜냐하면 애초에 DDg2p와 normal 유전자의 비교를 하는것이 목적이기 떄문에 나누면 내가 말하고자 하는 바와 상관없는 결과가 나오게 된다. 또한 표본이 적어서 바이올릿 플랏의 경우는 합쳤다.
 

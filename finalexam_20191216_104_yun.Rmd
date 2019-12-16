@@ -1,0 +1,155 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+```{r}
+install.packages('cowplot')
+install.packages('dslabs')
+```
+
+```{r}
+library(dslabs)
+data(heights)
+library(tidyverse)
+
+t<-heights%>%group_by(sex)%>%summarize(mean(height),sd(height))
+t
+
+heights%>%filter(sex=='Male')%>%ggplot(aes(height))+geom_histogram(color='black',fill='grey')
+
+heights%>%filter(sex=='Female')%>%ggplot(aes(height))+geom_histogram(color='black',fill='grey')
+
+x<-heights%>%filter(sex=='Female')%>%summarize(avg=mean(height),sd=sd(height))
+x
+
+1-pnorm((x$avg-61)/x$sd)
+
+x <- heights %>% filter(sex == "Female")
+mean(x$height<=61)
+
+```
+우선 분포를 그림으로도 나타내었고(각 성별로) 표로도 표현하였다.
+그림과 같이 표를 보면 여성의 경우 평균 키는 64.93이고 sd는 3.76이고, 남자의 경우 평균이 더 큰 69.314이고 sd는 3.61이다.
+이 집단에서 여성만을 추린 dataframe에서 평균과 표준편차를 뽑아서 두가지 과정을 진행하였는데 하나는 정규화를 가정하고 pnorm으로 구한 값과 또다른 하나는 그냥 전체 표본에서 61인치보다 작을 확률을 구했는데 미소한 차이가 존재한다. 0.14와 0.12이렇게 확률값이 다른이유는 그래프를 보면 알겟듯이 정규분포곡선과 가깝다고 말하기가 애매한 분포도를 나타내므로 차이가 존재할수 밖에 없다.
+
+
+```{r}
+set.seed(1)
+n <- 1000
+B <- 1000
+roulette_winnings <- function(n){
+  X <- sample(c(-1,15), n, replace = TRUE, prob=c(35/38, 3/38))
+  sum(X)
+}
+S <- replicate(B, roulette_winnings(n))
+
+
+X <- sample(c(-1,15), n, replace = TRUE, prob=c(35/38, 3/38))
+sd(X)*sqrt(1000)
+
+
+mean(S)
+sd(S)
+
+S<-as.data.frame(S)
+
+S%>%ggplot(aes(S))+geom_histogram(color='black',fill='grey')
+
+```
+이 과정을 보면 우선 문제대로 1000번 도박을 하는데 이 합을 가지는 값을 X로 지정하고 이과정을 다시 1000번하여 S로 지정하였다. 결과를 살펴보면 S의 평균값은 257$이고 sd값은 138$이다. 그래프를 살펴보면 어느정도 정규화를 따른다고 볼수 있는데 아마 이 곡선은 시행횟수인 B를 증가시키면 점점 정규화그래프에 가까워질것을 예상할수 있다. 한가지 재미있는 것은, X값 즉 시행의 횟수를 한번만 하는경우의 sd*sqrt(B)의 값은 쉽게 말해 하나의 표본을 뽑아 전체를 예상하려는 시도를 해본결과 129$가 나왔다. 한번의 시행인데도 불구하고 실제 sd값과 차이가 심하게 나지 않음을 볼수 있는데 이것은 X 자체가 1000회의 도박시행을 합친 값이기에 그럴것이라고 생각된다. 다음문제를 보면 더 확실히 알수 있다. 
+
+
+```{r}
+p <- 0.45
+N <- 10
+
+x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
+x_hat <- mean(x)
+B <- 100
+x_hat <- replicate(B, {
+  x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
+  mean(x)
+})
+x_hat<-as.data.frame(x_hat)
+p1<-x_hat%>%ggplot(aes(x_hat))+geom_histogram(color='black',fill='grey')
+
+p <- 0.45
+N <- 10
+
+x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
+x_hat <- mean(x)
+B <- 10000
+x_hat <- replicate(B, {
+  x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
+  mean(x)
+})
+x_hat<-as.data.frame(x_hat)
+p2<-x_hat%>%ggplot(aes(x_hat))+geom_histogram(color='black',fill='grey')
+
+p <- 0.45
+N <- 1000
+
+x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
+x_hat <- mean(x)
+B <- 100
+x_hat <- replicate(B, {
+  x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
+  mean(x)
+})
+x_hat<-as.data.frame(x_hat)
+p3<-x_hat%>%ggplot(aes(x_hat))+geom_histogram(color='black',fill='grey')
+
+p <- 0.45
+N <- 1000
+
+x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
+x_hat <- mean(x)
+B <- 10000
+x_hat <- replicate(B, {
+  x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
+  mean(x)
+})
+x_hat<-as.data.frame(x_hat)
+p4<-x_hat%>%ggplot(aes(x_hat))+geom_histogram(color='black',fill='grey')
+
+library(cowplot)
+plot_grid(p1,p2,p3,p4)
+
+```
+
+
+2번문제와 비슷하게 보면 표본의 개수와 시행의 횟수의 상관관계를 살펴볼수 있다. 2번문제에서 유추할수 있듯이 그래프 4개를 살펴보면 표본의 갯수가 증가하는 경우 (왼쪽 상단과 왼쪽 하단) 그리고 시행의 횟수가 증가하는 경우 (왼쪽 상단과 오른쪽 상단) 모두 정규화 분포 곡선의 모양(오른쪽 아래)로 향해감을 알수 있다. 즉, 표본의 개수와 시행의 횟수를 증가할수록 실제 사회 문제들을 더 가깝게 예측할수 있지만 이에는 비용이 천묵학적으로 드므로, 절충안을 찾는것이 중요할것이다.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
